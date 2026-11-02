@@ -1,44 +1,34 @@
 package main
 
-
-import(
-	"sync"
+import (
+	"encoding/json"
+	"fmt"
 )
 
-func main()  {
-	
+type response1 struct {
+	Page   int
+	Fruits []string
 }
 
-func Trabalhadores(tarefas []int, n int) []int {
-        jobs := make(chan int, len(tarefas))
-        resultados := make(chan int, len(tarefas))
+type response2 struct {
+	page   int      `json:"page"`
+	Fruits []string `json:"fruits"`
+}
 
-        // 1. lançar n trabalhadores (peças A e B)
-        var wg sync.WaitGroup
-        for i := 0; i < n; i++ {
-                wg.Add(1) // antes do go
-                go func() {
-                        defer wg.Done()
-                        for j := range jobs { // termina quando jobs fechar
-                                resultados <- j * 10
-                        }
-                }()
-        }
+func main() {
 
-        // 2. enviar as tarefas e fechar jobs
-        for _, t := range tarefas {
-                jobs <- t
-        }
-        close(jobs)
+	bolB, _ := json.Marshal(true)
+	fmt.Println(string(bolB))
+	intB, _ := json.Marshal(1)
+	fmt.Println(string(intB))
+	fltB, _ := json.Marshal(2.34)
+	fmt.Println(string(fltB))
 
-        // 3. esperar pelos trabalhadores, só depois fechar resultados
-        wg.Wait()
-        close(resultados)
+	strB, _ := json.Marshal("gopher")
+	fmt.Println(string(strB))
 
-        // 4. juntar tudo numa slice
-        var final []int
-        for r := range resultados {
-                final = append(final, r)
-        }
-        return final
+	slcD := []string{"apple", "peach", "pear"}
+	slcB, _ := json.Marshal(slcD)
+	fmt.Println(string(slcB))
+
 }

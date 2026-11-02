@@ -19,16 +19,26 @@ var _ = []any{errors.New, time.Second, sync.Mutex{}}
 // (também a leitura). Receptor por ponteiro: copiar um Mutex é erro.
 // =====================================================================
 type Contador struct {
-	// TODO
+	mu    sync.Mutex
+	valor int
 }
 
 func (c *Contador) Incrementar() {
-	// TODO
+
+	c.mu.Lock()
+
+	defer c.mu.Unlock()
+
+	c.valor++
+
 }
 
 func (c *Contador) Valor() int {
-	// TODO
-	return 0
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.valor
 }
 
 // =====================================================================
