@@ -19,7 +19,7 @@ var _ = []any{errors.New, time.Second, sync.Mutex{}}
 // (também a leitura). Receptor por ponteiro: copiar um Mutex é erro.
 // =====================================================================
 type Contador struct {
-	mu    sync.Mutex
+	mu    sync.RWMutex
 	valor int
 }
 
@@ -50,21 +50,29 @@ func (c *Contador) Valor() int {
 // Se quiseres, experimenta sync.RWMutex (RLock na leitura).
 // =====================================================================
 type Cache struct {
-	// TODO
+	mu    sync.Mutex
+	dados map[string]int
 }
 
 func NovaCache() *Cache {
-	// TODO
-	return nil
+	return &Cache{
+		dados: make(map[string]int),
+	}
 }
 
 func (c *Cache) Pôr(chave string, valor int) {
-	// TODO
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.dados[chave] = valor
 }
 
 func (c *Cache) Obter(chave string) (int, bool) {
-	// TODO
-	return 0, false
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	valor, found := c.dados[chave]
+
+	return valor, found
 }
 
 // =====================================================================

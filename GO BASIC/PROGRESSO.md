@@ -1,9 +1,9 @@
 # Estudo de Go — Objetivo e Estado
 
-Última atualização: 2026-11-02
+Última atualização: 2026-11-02 (fim do dia)
 
-Próximo: exercicios8 = concorrência II (ver exercicios8/CONTEXTO.md; select, Mutex, -race)
-e projeto 1 (CLI de tarefas). A exercicios7 (concorrência I) está concluída.
+Próximo: exercicios8, exercício 2 (`Cache`, map + Mutex). Contexto em
+exercicios8/CONTEXTO.md. Depois select (3 e 4), BuscarTodos (5) e projeto 1 (CLI de tarefas). A exercicios7 (concorrência I) está concluída.
 
 ## Plano da semana (26–30 out 2026)
 
@@ -36,7 +36,7 @@ solução logo (primeiro pistas e modelo mental).
 ## Estrutura do projeto
 
 ```
-chapter9/
+GO BASIC/   (antes chapter9)
 ├── main.go          # slices e arrays (experiências soltas)
 ├── resumo/          # resumo do básico de Go (main.go, main2.go)
 ├── exercicios/      # ronda 1: slices, ciclos  -> CONCLUÍDO
@@ -50,7 +50,7 @@ chapter9/
 │   └── main.go          # 5 exercícios + main_test.go
 ├── exercicios7/     # ronda 7: concorrência I -> CONCLUÍDO
 │   └── main.go          # 5 exercícios + main_test.go (com timeout)
-└── exercicios8/     # ronda 8: concorrência II -> EM CURSO (esqueletos)
+└── exercicios8/     # ronda 8: concorrência II -> EM CURSO (1/5 feito)
     ├── CONTEXTO.md      # conceitos, fontes e perguntas
     └── main.go          # 5 exercícios (TODO) + main_test.go
 ```
@@ -161,6 +161,20 @@ exercicios3 (ponteiros + pacote `conta`) concluído e validado.
 - Abrir: verificar erro, depois `defer f.Close()` logo a seguir. Ao escrever,
   o erro do Close conta.
 - Testes com ficheiros: `t.TempDir()` + `filepath.Join`.
+
+### Exercicios8 — EM CURSO (concorrência II)
+
+- [x] 1. `Contador`: Mutex + `defer Unlock` (validado 2 nov, `-race` ok)
+- [ ] 2. `Cache`: map + Mutex (`NovaCache` com `make`)
+- [ ] 3. `EsperarOuTimeout`: select + `time.After`
+- [ ] 4. `PrimeiroAResponder`: select sobre dois channels
+- [ ] 5. `BuscarTodos`: WaitGroup + Mutex
+- Validar com `cd exercicios8 && go test -race ./...`.
+- Lição (ex. 1): escreveu `defer c.mu.Lock()` em vez de `Unlock()` -> deadlock
+  (timeout no teste). Regra: `Lock()` e logo a seguir `defer Unlock()`; reler
+  a linha do `defer` antes de correr o teste. Cada `Lock` precisa do seu `Unlock`.
+- Pendente (estilo): apagar `// TODO` soltos e, no fim, a linha `var _ = ...`.
+- Próxima sessão: exercício 2 (Cache); depois os de select.
 
 ## Próximos passos
 
