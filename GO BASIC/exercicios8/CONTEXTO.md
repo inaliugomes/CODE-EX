@@ -36,7 +36,7 @@ só consome memória. Channel com buffer ou fechar/cancelar evita.
 ## Exercícios (main.go)
 
 - [x] 1. `Contador`: Mutex à volta de Incrementar/Valor
-- [ ] 2. `Cache`: map + Mutex (ou RWMutex); `NovaCache` inicializa o map
+- [x] 2. `Cache`: map + Mutex (ou RWMutex); `NovaCache` inicializa o map
 - [ ] 3. `EsperarOuTimeout`: select com `time.After`
 - [ ] 4. `PrimeiroAResponder`: select sobre dois channels
 - [ ] 5. `BuscarTodos`: vários "downloads" em paralelo (WaitGroup + Mutex)

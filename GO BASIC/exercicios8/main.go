@@ -69,6 +69,7 @@ func (c *Cache) Pôr(chave string, valor int) {
 func (c *Cache) Obter(chave string) (int, bool) {
 
 	c.mu.Lock()
+
 	defer c.mu.Unlock()
 	valor, found := c.dados[chave]
 
@@ -84,8 +85,17 @@ func (c *Cache) Obter(chave string) (int, bool) {
 var ErrTimeout = errors.New("timeout")
 
 func EsperarOuTimeout(ch <-chan int, d time.Duration) (int, error) {
-	// TODO
-	return 0, nil
+
+	select {
+
+	//Na verdade o que estamos a dizer que é chain vai passar um valor e temos de receber este valor .
+	case v := <-ch:
+		return v, nil
+	case <-time.After(d):
+		return 0, ErrTimeout
+
+	}
+
 }
 
 // =====================================================================
@@ -97,8 +107,16 @@ func EsperarOuTimeout(ch <-chan int, d time.Duration) (int, error) {
 // channels com buffer 1, mas pensa porquê.
 // =====================================================================
 func PrimeiroAResponder(a, b <-chan string) string {
-	// TODO
-	return ""
+
+	select {
+
+	case str := <-a:
+		return str
+
+	case str2 := <-b:
+		return str2
+	}
+
 }
 
 // =====================================================================
@@ -112,6 +130,12 @@ func PrimeiroAResponder(a, b <-chan string) string {
 // Rodar com -race: se esquecer o Mutex, o detetor apanha.
 // =====================================================================
 func BuscarTodos(urls []string, buscar func(string) (string, error)) (map[string]string, []string) {
+
+	wg := sync.WaitGroup
+	mu := sync.Mutex
+
+	ch := make(chan string, len(urls))
+
 	// TODO
 	return nil, nil
 }
