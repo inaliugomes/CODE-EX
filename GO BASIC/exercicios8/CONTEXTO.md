@@ -37,9 +37,9 @@ só consome memória. Channel com buffer ou fechar/cancelar evita.
 
 - [x] 1. `Contador`: Mutex à volta de Incrementar/Valor
 - [x] 2. `Cache`: map + Mutex (ou RWMutex); `NovaCache` inicializa o map
-- [ ] 3. `EsperarOuTimeout`: select com `time.After`
-- [ ] 4. `PrimeiroAResponder`: select sobre dois channels
-- [ ] 5. `BuscarTodos`: vários "downloads" em paralelo (WaitGroup + Mutex)
+- [x] 3. `EsperarOuTimeout`: select com `time.After`
+- [x] 4. `PrimeiroAResponder`: select sobre dois channels
+- [x] 5. `BuscarTodos`: vários "downloads" em paralelo (WaitGroup + Mutex)
 
 Validar: `cd exercicios8 && go test -race ./...` (timeout de 2s por teste).
 Os testes falham de início, é normal: são esqueletos com TODO.

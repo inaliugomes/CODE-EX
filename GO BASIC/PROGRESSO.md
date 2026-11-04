@@ -1,9 +1,8 @@
 # Estudo de Go — Objetivo e Estado
 
-Última atualização: 2026-11-04
+Última atualização: 2026-11-04 (exercicios8 concluído)
 
-Próximo: exercicios8, exercício 3 (`EsperarOuTimeout`, select + `time.After`). Contexto em
-exercicios8/CONTEXTO.md. Depois PrimeiroAResponder (4), BuscarTodos (5) e projeto 1 (CLI de tarefas). A exercicios7 (concorrência I) está concluída.
+Próximo: projeto 1 (CLI de tarefas, JSON + testes). A exercicios7 e a exercicios8 (concorrência) estão concluídas.
 
 ## Plano da semana (26–30 out 2026)
 
@@ -50,7 +49,7 @@ GO BASIC/   (antes chapter9)
 │   └── main.go          # 5 exercícios + main_test.go
 ├── exercicios7/     # ronda 7: concorrência I -> CONCLUÍDO
 │   └── main.go          # 5 exercícios + main_test.go (com timeout)
-└── exercicios8/     # ronda 8: concorrência II -> EM CURSO (2/5 feito)
+└── exercicios8/     # ronda 8: concorrência II -> CONCLUÍDO
     ├── CONTEXTO.md      # conceitos, fontes e perguntas
     └── main.go          # 5 exercícios (TODO) + main_test.go
 ```
@@ -162,19 +161,22 @@ exercicios3 (ponteiros + pacote `conta`) concluído e validado.
   o erro do Close conta.
 - Testes com ficheiros: `t.TempDir()` + `filepath.Join`.
 
-### Exercicios8 — EM CURSO (concorrência II)
+### Exercicios8 — CONCLUÍDO (concorrência II, 4 nov)
 
 - [x] 1. `Contador`: Mutex + `defer Unlock` (validado 2 nov, `-race` ok)
 - [x] 2. `Cache`: map + Mutex (`NovaCache` com `make`) (validado 4 nov, `-race` ok)
-- [ ] 3. `EsperarOuTimeout`: select + `time.After`
-- [ ] 4. `PrimeiroAResponder`: select sobre dois channels
-- [ ] 5. `BuscarTodos`: WaitGroup + Mutex
+- [x] 3. `EsperarOuTimeout`: select + `time.After`
+- [x] 4. `PrimeiroAResponder`: select sobre dois channels
+- [x] 5. `BuscarTodos`: WaitGroup + Mutex
 - Validar com `cd exercicios8 && go test -race ./...`.
 - Lição (ex. 1): escreveu `defer c.mu.Lock()` em vez de `Unlock()` -> deadlock
   (timeout no teste). Regra: `Lock()` e logo a seguir `defer Unlock()`; reler
   a linha do `defer` antes de correr o teste. Cada `Lock` precisa do seu `Unlock`.
 - Pendente (estilo): apagar `// TODO` soltos e, no fim, a linha `var _ = ...`.
-- Próxima sessão: exercício 3 (EsperarOuTimeout); depois 4 e 5.
+- Lições (ex. 5): chave do map = URL, valor = conteúdo; falhas = lista de URLs (não erros);
+  `wg.Wait()` FORA do ciclo; `buscar` fora do lock (só o map/slice protegidos);
+  `select` executa um só case e não cria goroutines; `if err == nil` para o sucesso.
+- Pendente (estilo): `var _ = ...`, `// TODO` solto, imports não usados.
 
 ## Próximos passos
 
