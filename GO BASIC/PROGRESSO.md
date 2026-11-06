@@ -32,6 +32,9 @@ um projeto pequeno sozinho (CLI de tarefas em JSON ou API HTTP simples).
 Preferências: explicações em português, exemplos sempre em Go, sem dar a
 solução logo (primeiro pistas e modelo mental).
 
+**Regra: nunca fazer commit.** Só o utilizador faz commits (git commit/push).
+O Claude só os faz se houver um pedido direto e explícito do utilizador.
+
 ## Estrutura do projeto
 
 ```

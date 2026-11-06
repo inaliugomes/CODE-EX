@@ -54,6 +54,7 @@ type Cache struct {
 	dados map[string]int
 }
 
+//aqui estamos a falar de um contrutor 
 func NovaCache() *Cache {
 	return &Cache{
 		dados: make(map[string]int),
@@ -159,6 +160,9 @@ func BuscarTodos(urls []string, buscar func(string) (string, error)) (map[string
 		}()
 
 	}
+	//Vai permitir que main no acabe e deixe funcionalidad a meio , 
+	//ou seja a main vai precisar de ficar a espera que esta wait finalize y todos estejam marcado
+	
 	wg.Wait()
 
 	// TODO
