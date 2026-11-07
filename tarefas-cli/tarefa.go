@@ -23,9 +23,9 @@ type Tarefa struct {
 
 type Lista []Tarefa
 
-var ErrTituloVazio = errors.New("Erro Titulo Vazio")
+var ErrTituloVazio = errors.New("erro titulo vazio")
 
-var ErrNaoEncontrada = errors.New("Item nao encontrado")
+var ErrNaoEncontrada = errors.New("item nao encontrado")
 
 func (l *Lista) Adicionar(titulo string) (Tarefa, error) {
 
@@ -34,7 +34,18 @@ func (l *Lista) Adicionar(titulo string) (Tarefa, error) {
 		return Tarefa{}, ErrTituloVazio
 	}
 
-	nextID := (*l)[len(*l)-1].ID
+	maior := 0
+
+	for _, valor := range *l {
+
+		if valor.ID > maior {
+
+			maior = valor.ID
+		}
+
+	}
+
+	nextID := maior + 1
 
 	tarefa := Tarefa{ID: nextID, Titulo: titulo, Concluida: false}
 
@@ -44,9 +55,7 @@ func (l *Lista) Adicionar(titulo string) (Tarefa, error) {
 
 }
 
-func (l *Lista) Conluir(id int) error {
-
-	encontado := false
+func (l *Lista) Concluir(id int) error {
 
 	if id < 0 {
 
@@ -59,23 +68,17 @@ func (l *Lista) Conluir(id int) error {
 
 			(*l)[i].Concluida = true
 
-			encontado = true
+			return nil
 
 		}
 
 	}
 
-	if encontado {
-		return nil
-	} else {
-		return ErrNaoEncontrada
-	}
+	return ErrNaoEncontrada
 
 }
 
 func (l *Lista) Remover(id int) error {
-
-	removido := false
 
 	if id < 0 {
 
@@ -87,16 +90,10 @@ func (l *Lista) Remover(id int) error {
 		if tarefa.ID == id {
 
 			*l = append((*l)[:i], (*l)[i+1:]...)
-			removido = true
+			return nil
 		}
 	}
 
-	if removido {
-
-		return nil
-	} else {
-
-		return ErrNaoEncontrada
-	}
+	return ErrNaoEncontrada
 
 }
