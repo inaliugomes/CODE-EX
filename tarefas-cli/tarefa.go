@@ -25,7 +25,7 @@ type Lista []Tarefa
 
 var ErrTituloVazio = errors.New("erro titulo vazio")
 
-var ErrNaoEncontrada = errors.New("item nao encontrado")
+var ErrNaoEncontrada = errors.New("tem nao encontrado")
 
 func (l *Lista) Adicionar(titulo string) (Tarefa, error) {
 
