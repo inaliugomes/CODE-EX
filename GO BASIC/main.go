@@ -2,58 +2,69 @@ package main
 
 import (
 	"fmt"
-	"sync"
 )
 
-func QuadradosParalelo(nums []int) []int {
+func Gerar(n int) <-chan int {
 
-	res := make([]int , len(nums))
-	var wg sync.WaitGroup
-	
-	for i , v := range nums {
+	out := make(chan int)
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			res[i] = v * v 
-		}()
+	go func() {
+		defer close(out)
+		for i := 1; i <= n; i++ {
+			out <- i
+		}
+	}()
 
-		wg.Wait()
-		
-	}
-	return res 
+	return out
 }
 
-type Resultado struct { 
+func Mapear(in <-chan int, f func(int) int) <-chan int {
 
-	Valor int 
-	Erro error 
+	out := make(chan int)
+
+	go func() {
+		defer close(out)
+		for v := range in {
+			out <- f(v)
+		}
+	}()
+
+	return out
 }
 
-func DividirTodos(divisores []int) []Resultado { 
+func Filtrar(in <-chan int, ok func(int) bool) <-chan int {
+	out := make(chan int)
 
-	res := make([]Resultado, len(divisores))
-
-	var wg sync.WaitGroup
-
-	for i, d := range divisores { 
-		wg.Add(1)
-		go func() { 
-			defer wg.Done()
-			if d == 0 { 
-				res[i] = Resultado{Erro: fmt.Errorf("%w")}
-				return
+	go func() {
+		// se nao fecharmos  chanel , da deadlock
+		defer close(out)
+		for v := range in {
+			if ok(v) {
+				out <- v
 			}
-			res[i] = Resultado{Valor: 100/d}
-		}()
-	}
+		}
 
-	wg.Wait()
-	return res 
+	}()
 
+	return out
 }
 
-func trabalhador(id int , wg *sync.WaitGroup, saida []string){
-	defer wg.Done()
-	saida[id] = fmt.Sprintf("trabalhador %d feito00",id)
+func Somar(in <-chan int) int {
+	total := 0
+	for v := range in {
+		total += v
+	}
+
+	return total
+}
+
+func main() {
+
+	dobros := Mapear(Gerar(10), func(x int) int { return x * 2 })
+	mult3 := Filtrar(dobros, func(x int) bool { return x%3 == 0 })
+	fmt.Println("soma:", Somar(mult3))
+
+	// Encadear tudo numa linha (lê-se de dentro para fora):
+	fmt.Println(Somar(Filtrar(Mapear(Gerar(5), func(x int) int { return x * x }),
+		func(x int) bool { return x%2 == 1 }))) // 1+9+25 = 35
 }
