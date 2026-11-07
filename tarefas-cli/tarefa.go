@@ -27,23 +27,76 @@ var ErrTituloVazio = errors.New("Erro Titulo Vazio")
 
 var ErrNaoEncontrada = errors.New("Item nao encontrado")
 
-func (t *Tarefa) Adicioanr(titulo string) (Tarefa, error) {
+func (l *Lista) Adicionar(titulo string) (Tarefa, error) {
 
-	return Tarefa{}, nil
+	if titulo == "" {
+
+		return Tarefa{}, ErrTituloVazio
+	}
+
+	nextID := (*l)[len(*l)-1].ID
+
+	tarefa := Tarefa{ID: nextID, Titulo: titulo, Concluida: false}
+
+	*l = append(*l, tarefa)
+
+	return tarefa, nil
+
 }
 
-func (t *Tarefa) Conluir(id int) error {
+func (l *Lista) Conluir(id int) error {
 
-	return nil
+	encontado := false
+
+	if id < 0 {
+
+		return ErrNaoEncontrada
+	}
+
+	for i, tarefa := range *l {
+
+		if tarefa.ID == id {
+
+			(*l)[i].Concluida = true
+
+			encontado = true
+
+		}
+
+	}
+
+	if encontado {
+		return nil
+	} else {
+		return ErrNaoEncontrada
+	}
+
 }
 
-func (t *Tarefa) Remover(id int) error {
+func (l *Lista) Remover(id int) error {
 
-	return nil
+	removido := false
+
+	if id < 0 {
+
+		return ErrNaoEncontrada
+	}
+
+	for i, tarefa := range *l {
+
+		if tarefa.ID == id {
+
+			*l = append((*l)[:i], (*l)[i+1:]...)
+			removido = true
+		}
+	}
+
+	if removido {
+
+		return nil
+	} else {
+
+		return ErrNaoEncontrada
+	}
+
 }
-
-// TODO (Etapa 1): ErrTituloVazio e ErrNaoEncontrada com errors.New.
-
-// TODO (Etapa 1): Adicionar(titulo string) (Tarefa, error)   // receptor por ponteiro
-// TODO (Etapa 1): Concluir(id int) error                     // receptor por ponteiro
-// TODO (Etapa 1): Remover(id int) error                      // receptor por ponteiro
