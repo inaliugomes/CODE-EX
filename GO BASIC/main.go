@@ -1,51 +1,59 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
-func Gerar(n int) <-chan int {
+func QuadradosParalelo(nums []int) []int {
 
-	ch := make(chan int)
+	res := make([]int , len(nums))
+	var wg sync.WaitGroup
+	
+	for i , v := range nums {
 
-	go func() {
-		defer close(ch)
-		for i := 1; i <= n; i++ {
-			ch <- 1
-		}
-	}()
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			res[i] = v * v 
+		}()
 
-	return ch
-
+		wg.Wait()
+		
+	}
+	return res 
 }
 
-func Consumir(in <-chan int) (soma int) {
+type Resultado struct { 
 
-	for v := range in {
-		soma += v
+	Valor int 
+	Erro error 
+}
+
+func DividirTodos(divisores []int) []Resultado { 
+
+	res := make([]Resultado, len(divisores))
+
+	var wg sync.WaitGroup
+
+	for i, d := range divisores { 
+		wg.Add(1)
+		go func() { 
+			defer wg.Done()
+			if d == 0 { 
+				res[i] = Resultado{Erro: fmt.Errorf("%w")}
+				return
+			}
+			res[i] = Resultado{Valor: 100/d}
+		}()
 	}
 
-	return soma
+	wg.Wait()
+	return res 
+
 }
 
-func main() {
-	fmt.Println("soma 1..5:", Consumir(Gerar(5)))
-	fmt.Println("soma 1..0:", Consumir(Gerar(0)))
-
-	// Channel com buffer: os valores ficam guardados depois do close.
-	ch := make(chan int, 2)
-	ch <- 10
-	ch <- 20
-	close(ch)
-
-	v, ok := <-ch
-	fmt.Println(v, ok) // 10 true
-	v, ok = <-ch
-	fmt.Println(v, ok) // 20 true
-	v, ok = <-ch
-	fmt.Println(v, ok) // 0 false  (fechado e vazio)
-
-	func() {
-		defer func() { fmt.Println("recuperado:", recover()) }()
-		ch <- 30
-	}()
-
+func trabalhador(id int , wg *sync.WaitGroup, saida []string){
+	defer wg.Done()
+	saida[id] = fmt.Sprintf("trabalhador %d feito00",id)
 }
