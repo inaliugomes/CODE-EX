@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 )
 
 // TODO (Etapa 2): Carregar(caminho string) (Lista, error)
@@ -47,10 +48,35 @@ func Guardar(caminho string, l Lista) error {
 		return err
 	}
 
-	errWriteJSon := os.WriteFile(caminho, jsonObject, 0644)
+	caminhoDir := filepath.Dir(caminho)
+	tmp, errPath := os.CreateTemp(caminhoDir, "tarefas-*.tmp")
+
+	if errPath != nil {
+
+		return errPath
+	}
+
+	_, errWriteJSon := tmp.Write(jsonObject)
 
 	if errWriteJSon != nil {
+
+		os.Remove(tmp.Name())
+		tmp.Close()
 		return errWriteJSon
+	}
+	errClose := tmp.Close()
+
+	if errClose != nil {
+		os.Remove(tmp.Name())
+		return errClose
+	}
+
+	errRename := os.Rename(tmp.Name(), caminho)
+
+	if errRename != nil {
+
+		os.Remove(tmp.Name())
+		return errRename
 	}
 
 	return nil

@@ -75,7 +75,7 @@ func executar(args []string, caminho string, saida io.Writer) error {
 			return fmt.Errorf("tarefa nao identificado correctamente ")
 		}
 
-		idInt, errID := strconv.Atoi(args[1])
+		idInt, errID := lerID(args)
 
 		if errID != nil {
 
@@ -107,7 +107,7 @@ func executar(args []string, caminho string, saida io.Writer) error {
 
 		}
 
-		idInt, errID := strconv.Atoi(args[1])
+		idInt, errID := lerID(args)
 
 		if errID != nil {
 
@@ -155,4 +155,16 @@ func executar(args []string, caminho string, saida io.Writer) error {
 
 	return nil
 
+}
+
+func lerID(args []string) (int, error) {
+
+	idInt, errID := strconv.Atoi(args[1])
+
+	if errID != nil {
+
+		return 0, fmt.Errorf("id inválido: %w", errID)
+	}
+
+	return idInt, nil
 }

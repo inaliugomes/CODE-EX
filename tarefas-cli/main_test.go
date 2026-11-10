@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -96,5 +97,29 @@ func TestExecutarAjuda(t *testing.T) {
 	_ = executar(nil, caminho, &saida)
 	if saida.Len() == 0 {
 		t.Error("sem argumentos devia escrever a ajuda")
+	}
+}
+
+// ID que não é um número deve dar o erro "id inválido" (e não "não
+// encontrada"), sem panic e sem alterar a lista.
+func TestExecutarIDInvalido(t *testing.T) {
+	ids := []string{"abc", "1.5", "1a", " ", "99999999999999999999"}
+	for _, cmd := range []string{"done", "remove"} {
+		for _, id := range ids {
+			t.Run(cmd+" "+id, func(t *testing.T) {
+				caminho := filepath.Join(t.TempDir(), "tarefas.json")
+				corre(t, caminho, []string{"add", "a"})
+
+				_, err := corre(t, caminho, []string{cmd, id})
+				if err == nil || !strings.Contains(err.Error(), "id inválido") {
+					t.Errorf("err = %v, quero um erro com %q", err, "id inválido")
+				}
+
+				out, _ := corre(t, caminho, []string{"list"})
+				if out != "[ ] 1  a\n" {
+					t.Errorf("a lista mudou: %q", out)
+				}
+			})
+		}
 	}
 }
