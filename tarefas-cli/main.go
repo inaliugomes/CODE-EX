@@ -24,7 +24,7 @@ func executar(args []string, caminho string, saida io.Writer) error {
 	if len(args) == 0 {
 
 		fmt.Fprintln(saida, "uso: tarefas add|list|done|remove ...")
-		return fmt.Errorf("texto vazio")
+		return fmt.Errorf("comando em falta")
 	}
 
 	comando := strings.ToLower(args[0])

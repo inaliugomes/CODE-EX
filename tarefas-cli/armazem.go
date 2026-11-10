@@ -60,8 +60,8 @@ func Guardar(caminho string, l Lista) error {
 
 	if errWriteJSon != nil {
 
-		os.Remove(tmp.Name())
 		tmp.Close()
+		os.Remove(tmp.Name())
 		return errWriteJSon
 	}
 	errClose := tmp.Close()
