@@ -40,12 +40,6 @@ func executar(args []string, caminho string, saida io.Writer) error {
 
 	case "add":
 
-		if len(args) == 0 {
-
-			fmt.Fprintln(saida, "uso: tarefas add|list|done|remove ...")
-			return fmt.Errorf("texto vazio")
-		}
-
 		if len(args) < 2 {
 			return fmt.Errorf("tarefa nao identificado correctamente")
 		}
@@ -64,12 +58,6 @@ func executar(args []string, caminho string, saida io.Writer) error {
 		fmt.Fprintf(saida, "Tarefa %d criada.\n", tarefa.ID)
 
 	case "remove":
-
-		if len(args) == 0 {
-
-			fmt.Fprintln(saida, "uso: tarefas add|list|done|remove ...")
-			return fmt.Errorf("texto vazio")
-		}
 
 		if len(args) < 2 {
 			return fmt.Errorf("tarefa nao identificado correctamente ")
