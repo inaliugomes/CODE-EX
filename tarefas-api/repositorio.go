@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"slices"
 	"strings"
 	"sync"
@@ -27,8 +26,6 @@ type Memoria struct {
 }
 
 func NovaMemoria() *Memoria { return &Memoria{} }
-
-var errPorFazer = errors.New("por implementar")
 
 func (m *Memoria) Listar() ([]Tarefa, error) {
 	m.mu.Lock()
@@ -84,7 +81,21 @@ func (m *Memoria) Concluir(id int) error {
 	return ErrNaoEncontrada
 
 }
-func (m *Memoria) Remover(id int) error { return errPorFazer }
+func (m *Memoria) Remover(id int) error {
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	for i, t := range m.tarefas {
+
+		if t.ID == id {
+			m.tarefas = append(m.tarefas[:i], m.tarefas[i+1:]...)
+			return nil
+		}
+	}
+
+	return ErrNaoEncontrada
+}
 
 // Garante em tempo de compilação que Memoria cumpre a interface.
 var _ Repositorio = (*Memoria)(nil)
