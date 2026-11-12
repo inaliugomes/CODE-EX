@@ -41,8 +41,8 @@ func (m *Memoria) Listar() ([]Tarefa, error) {
 
 func (m *Memoria) Adicionar(t string) (Tarefa, error) {
 
-	if strings.TrimSpace(t) == "" { 
-		return Tarefa{} , ErrTituloVazio
+	if strings.TrimSpace(t) == "" {
+		return Tarefa{}, ErrTituloVazio
 	}
 
 	m.mu.Lock()
@@ -67,8 +67,24 @@ func (m *Memoria) Adicionar(t string) (Tarefa, error) {
 	return tarefa, nil
 }
 
-func (m *Memoria) Concluir(id int) error { return errPorFazer }
-func (m *Memoria) Remover(id int) error  { return errPorFazer }
+func (m *Memoria) Concluir(id int) error {
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	for i, t := range m.tarefas {
+
+		if t.ID == id {
+			m.tarefas[i].Concluida = true
+			return nil
+		}
+
+	}
+
+	return ErrNaoEncontrada
+
+}
+func (m *Memoria) Remover(id int) error { return errPorFazer }
 
 // Garante em tempo de compilação que Memoria cumpre a interface.
 var _ Repositorio = (*Memoria)(nil)
