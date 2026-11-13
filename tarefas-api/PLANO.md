@@ -46,7 +46,15 @@ O handler traduz erros do repositório com `errors.Is`
 ### Etapa 0 — Esqueleto (feito)
 Estrutura criada; `go build` compila e os testes de `Memoria` falham (vermelho).
 
-### Etapa 1 — `Memoria` (1h)
+### Etapa 1 — `Memoria` (1h) — FEITO (2026-11-12)
+Os 4 métodos feitos e validados: `go test -race ./...` passa (6 testes),
+`gofmt` e `go vet` limpos. Perguntas 1 e 2 do CONTEXTO.md respondidas.
+Aprendido: `range` dá cópia (alterar por índice); `defer Unlock()` logo após
+`Lock()`; cada pedido HTTP corre numa goroutine; Mutex protege o acesso e a
+cópia protege o resultado.
+Limpeza opcional: apagar `errPorFazer` e os TODO da Etapa 1 em `repositorio.go`.
+**Próximo passo: Etapa 2** (escrever `servidor_test.go` e depois o handler).
+
 - Implementar os 4 métodos com `sync.Mutex`; `Listar` devolve cópia.
 - Pronto quando `repositorio_test.go` passa, incluindo `-race`.
 - Pistas: ID = maior + 1; `defer Unlock()` logo depois do `Lock()`;
