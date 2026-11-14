@@ -20,8 +20,25 @@ func NovoServidor(repo Repositorio) *Servidor {
 	s.mux.HandleFunc("GET /tarefas", s.listar)
 	s.mux.HandleFunc("POST /tarefas", s.adicionar)
 	s.mux.HandleFunc("PATCH /tarefas/{id}/concluir", s.concluir)
+	s.mux.HandleFunc("DELETE /tarefas/{id}", s.delete)
 
 	return s
+}
+
+func letID(r *http.Request) (int, error) {
+
+	id := r.PathValue("id")
+
+	idValue, errValue := strconv.Atoi(id)
+
+	if errValue != nil {
+
+		return 0, errValue
+
+	}
+
+	return idValue, nil
+
 }
 
 func (s *Servidor) Handler() http.Handler { return s.mux }
@@ -90,9 +107,7 @@ func (s *Servidor) adicionar(w http.ResponseWriter, r *http.Request) {
 
 func (s *Servidor) concluir(w http.ResponseWriter, r *http.Request) {
 
-	id := r.PathValue("id")
-
-	idValue, errValue := strconv.Atoi(id)
+	idValue, errValue := letID(r)
 
 	if errValue != nil {
 
@@ -112,6 +127,34 @@ func (s *Servidor) concluir(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error interno do servidor", http.StatusInternalServerError)
 			return
 
+		}
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+
+}
+
+func (s *Servidor) delete(w http.ResponseWriter, r *http.Request) {
+
+	idValue, errValue := letID(r)
+
+	if errValue != nil {
+		http.Error(w, "Erro do servidor , valida o seu id", http.StatusBadRequest)
+		return
+	}
+
+	errRemover := s.repo.Remover(idValue)
+
+	if errRemover != nil {
+
+		if errors.Is(errRemover, ErrNaoEncontrada) {
+
+			http.Error(w, "tarefa com esse id nao encontrado", http.StatusNotFound)
+			return
+		} else {
+
+			http.Error(w, "Error interno do servidor", http.StatusInternalServerError)
+			return
 		}
 	}
 
