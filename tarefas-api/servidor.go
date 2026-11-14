@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 )
 
 type Servidor struct {
@@ -18,6 +19,7 @@ func NovoServidor(repo Repositorio) *Servidor {
 
 	s.mux.HandleFunc("GET /tarefas", s.listar)
 	s.mux.HandleFunc("POST /tarefas", s.adicionar)
+	s.mux.HandleFunc("PATCH /tarefas/{id}/concluir", s.concluir)
 
 	return s
 }
@@ -83,5 +85,36 @@ func (s *Servidor) adicionar(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(201)
 	json.NewEncoder(w).Encode(tarefa)
+
+}
+
+func (s *Servidor) concluir(w http.ResponseWriter, r *http.Request) {
+
+	id := r.PathValue("id")
+
+	idValue, errValue := strconv.Atoi(id)
+
+	if errValue != nil {
+
+		http.Error(w, "Erro do servidor , valida o seu id", http.StatusBadRequest)
+		return
+	}
+
+	errConcluir := s.repo.Concluir(idValue)
+
+	if errConcluir != nil {
+		if errors.Is(errConcluir, ErrNaoEncontrada) {
+
+			http.Error(w, "tarefa com esse id nao encontrado", http.StatusNotFound)
+			return
+		} else {
+
+			http.Error(w, "Error interno do servidor", http.StatusInternalServerError)
+			return
+
+		}
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 
 }

@@ -169,3 +169,97 @@ func TestAdicionarEmParalelo(t *testing.T) {
 		t.Errorf("tarefas = %d, esperado 50", len(lista))
 	}
 }
+
+// --- Etapa 4: PATCH /tarefas/{id}/concluir e DELETE /tarefas/{id} ---
+
+func TestConcluirDevolve204EMarcaConcluida(t *testing.T) {
+	repo := NovaMemoria()
+	repo.Adicionar("Estudar Go")
+
+	rec := pedir(t, repo, http.MethodPatch, "/tarefas/1/concluir")
+
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("código = %d, esperado 204", rec.Code)
+	}
+	if rec.Body.Len() != 0 {
+		t.Errorf("204 não deve ter corpo, tem %q", rec.Body.String())
+	}
+	if lista, _ := repo.Listar(); len(lista) != 1 || !lista[0].Concluida {
+		t.Errorf("a tarefa devia estar concluída: %+v", lista)
+	}
+}
+
+func TestConcluirInexistenteDa404(t *testing.T) {
+	rec := pedir(t, NovaMemoria(), http.MethodPatch, "/tarefas/99/concluir")
+
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("código = %d, esperado 404", rec.Code)
+	}
+}
+
+func TestConcluirIDInvalidoDa400(t *testing.T) {
+	for _, id := range []string{"abc", "1.5", "-"} {
+		rec := pedir(t, NovaMemoria(), http.MethodPatch, "/tarefas/"+id+"/concluir")
+		if rec.Code != http.StatusBadRequest {
+			t.Errorf("id %q: código = %d, esperado 400", id, rec.Code)
+		}
+	}
+}
+
+func TestRemoverDevolve204ERemove(t *testing.T) {
+	repo := NovaMemoria()
+	repo.Adicionar("A")
+	repo.Adicionar("B")
+
+	rec := pedir(t, repo, http.MethodDelete, "/tarefas/1")
+
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("código = %d, esperado 204", rec.Code)
+	}
+	if rec.Body.Len() != 0 {
+		t.Errorf("204 não deve ter corpo, tem %q", rec.Body.String())
+	}
+	if lista, _ := repo.Listar(); len(lista) != 1 || lista[0].Titulo != "B" {
+		t.Errorf("devia restar só a tarefa B: %+v", lista)
+	}
+}
+
+func TestRemoverInexistenteDa404(t *testing.T) {
+	rec := pedir(t, NovaMemoria(), http.MethodDelete, "/tarefas/99")
+
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("código = %d, esperado 404", rec.Code)
+	}
+}
+
+func TestRemoverIDInvalidoDa400(t *testing.T) {
+	rec := pedir(t, NovaMemoria(), http.MethodDelete, "/tarefas/abc")
+
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("código = %d, esperado 400", rec.Code)
+	}
+}
+
+type repoConcluirRemoverErro struct{ Repositorio }
+
+func (repoConcluirRemoverErro) Concluir(int) error { return errors.New("falhou") }
+func (repoConcluirRemoverErro) Remover(int) error  { return errors.New("falhou") }
+
+func TestConcluirEErroInesperadoDa500(t *testing.T) {
+	repo := repoConcluirRemoverErro{NovaMemoria()}
+
+	if rec := pedir(t, repo, http.MethodPatch, "/tarefas/1/concluir"); rec.Code != http.StatusInternalServerError {
+		t.Errorf("concluir: código = %d, esperado 500", rec.Code)
+	}
+	if rec := pedir(t, repo, http.MethodDelete, "/tarefas/1"); rec.Code != http.StatusInternalServerError {
+		t.Errorf("remover: código = %d, esperado 500", rec.Code)
+	}
+}
+
+func TestMetodoErradoNaRotaDa405(t *testing.T) {
+	rec := pedir(t, NovaMemoria(), http.MethodPut, "/tarefas/1/concluir")
+
+	if rec.Code != http.StatusMethodNotAllowed {
+		t.Errorf("código = %d, esperado 405", rec.Code)
+	}
+}
