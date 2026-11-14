@@ -2,12 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 )
 
-// Servidor liga o Repositorio ao HTTP.
-// TODO (Etapa 2 em diante): campo com o Repositorio e Handler() http.Handler
-// com um http.ServeMux e as rotas do PLANO.md.
 type Servidor struct {
 	repo Repositorio
 
@@ -19,6 +17,7 @@ func NovoServidor(repo Repositorio) *Servidor {
 	s := &Servidor{repo: repo, mux: http.NewServeMux()}
 
 	s.mux.HandleFunc("GET /tarefas", s.listar)
+	s.mux.HandleFunc("POST /tarefas", s.adicionar)
 
 	return s
 }
@@ -31,7 +30,7 @@ func (s *Servidor) listar(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 
-		http.Error(w, "....", http.StatusInternalServerError)
+		http.Error(w, "Erro Interno do servidor , tente mas tarde ", http.StatusInternalServerError)
 		return
 
 	}
@@ -41,5 +40,48 @@ func (s *Servidor) listar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-type", "application/json")
-	json.NewEncoder(w).Encode(tarefas)
+	errencode := json.NewEncoder(w).Encode(tarefas)
+
+	if errencode != nil {
+
+		http.Error(w, "Erro Interno do servidor , tente mas tarde ", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (s *Servidor) adicionar(w http.ResponseWriter, r *http.Request) {
+
+	var entrada struct {
+		Titulo string `json:"titulo"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&entrada)
+
+	if err != nil {
+
+		http.Error(w, "JSON inválido ou titulo vazio", http.StatusBadRequest)
+		return
+
+	}
+
+	tarefa, errTarefa := s.repo.Adicionar(entrada.Titulo)
+
+	if errTarefa != nil {
+
+		if errors.Is(errTarefa, ErrTituloVazio) {
+			http.Error(w, "JSON inválido ou titulo vazio", http.StatusBadRequest)
+			return
+		} else {
+
+			http.Error(w, "Erro do servidor , por favor tente mas tarde", http.StatusInternalServerError)
+			return
+
+		}
+	}
+
+	w.Header().Set("Content-type", "application/json")
+
+	w.WriteHeader(201)
+	json.NewEncoder(w).Encode(tarefa)
+
 }

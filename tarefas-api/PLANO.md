@@ -60,7 +60,10 @@ Limpeza opcional: apagar `errPorFazer` e os TODO da Etapa 1 em `repositorio.go`.
 - Pistas: ID = maior + 1; `defer Unlock()` logo depois do `Lock()`;
   `slices.Clone` ou `append([]Tarefa(nil), ...)` para copiar.
 
-### Etapa 2 — `GET /tarefas` (1h)
+### Etapa 2 — `GET /tarefas` (1h) — FEITO (2026-11-13)
+`servidor_test.go` (5 testes) passa com `-race`; `gofmt` e `go vet` limpos.
+**Amanhã: rever os conceitos** (ver "Rever amanhã" no `GO BASIC/PROGRESSO.md`) antes da Etapa 3.
+
 - Servidor com `http.ServeMux`; handler que lista em JSON.
 - Conceitos: `http.ResponseWriter`, `*http.Request`, `json.NewEncoder(w)`,
   `Content-Type`, `httptest.NewRecorder` e `httptest.NewRequest`.
