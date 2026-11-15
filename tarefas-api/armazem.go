@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 )
 
@@ -44,9 +45,112 @@ func (a *Armazem) Listar() ([]Tarefa, error) {
 
 }
 
-func (a *Armazem) Adicionar(t string) (Tarefa, error) { return Tarefa{}, errPorFazerArmazem }
-func (a *Armazem) Concluir(id int) error              { return errPorFazerArmazem }
-func (a *Armazem) Remover(id int) error               { return errPorFazerArmazem }
+func (a *Armazem) Adicionar(t string) (Tarefa, error) {
+
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	maior := 0
+
+	if strings.TrimSpace(t) == "" {
+
+		return Tarefa{}, ErrTituloVazio
+	}
+
+	listaTarefa, errCarregar := Carregar(a.caminho)
+
+	if errCarregar != nil {
+
+		return Tarefa{}, errCarregar
+	}
+
+	for _, tarefa := range listaTarefa {
+
+		if tarefa.ID > maior {
+
+			maior = tarefa.ID
+		}
+
+	}
+
+	nextID := maior + 1
+
+	proximaTarefa := Tarefa{ID: nextID, Titulo: t, Concluida: false}
+
+	listaTarefa = append(listaTarefa, proximaTarefa)
+
+	errGuardar := Guardar(a.caminho, listaTarefa)
+
+	if errGuardar != nil {
+
+		return Tarefa{}, errGuardar
+	}
+
+	return proximaTarefa, nil
+
+}
+
+func (a *Armazem) Concluir(id int) error {
+
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	listaTarefa, err := Carregar(a.caminho)
+
+	if err != nil {
+
+		return err
+	}
+
+	for i, tarefa := range listaTarefa {
+
+		if tarefa.ID == id {
+			listaTarefa[i].Concluida = true
+			errGuardar := Guardar(a.caminho, listaTarefa)
+
+			if errGuardar != nil {
+
+				return errGuardar
+			}
+			return nil
+		}
+
+	}
+
+	return ErrNaoEncontrada
+
+}
+
+func (a *Armazem) Remover(id int) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	listaTarefa, err := Carregar(a.caminho)
+
+	if err != nil {
+
+		return err
+	}
+
+	for i, tarefa := range listaTarefa {
+
+		if tarefa.ID == id {
+			listaTarefa = append(listaTarefa[:i], listaTarefa[i+1:]...)
+
+			errRemover := Guardar(a.caminho, listaTarefa)
+
+			if errRemover != nil {
+
+				return errRemover
+			}
+			return nil
+		}
+
+	}
+
+	return ErrNaoEncontrada
+
+}
 
 var _ Repositorio = (*Armazem)(nil)
 
