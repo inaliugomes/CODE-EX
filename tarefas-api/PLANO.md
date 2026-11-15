@@ -62,18 +62,20 @@ Limpeza opcional: apagar `errPorFazer` e os TODO da Etapa 1 em `repositorio.go`.
 
 ### Etapa 2 — `GET /tarefas` (1h) — FEITO (2026-11-13)
 `servidor_test.go` (5 testes) passa com `-race`; `gofmt` e `go vet` limpos.
-**Amanhã: rever os conceitos** (ver "Rever amanhã" no `GO BASIC/PROGRESSO.md`) antes da Etapa 3.
+Conceitos HTTP revistos em 14 nov (fluxo mux -> handler, `s.listar` sem parênteses, ordem dos cabeçalhos, `[]` vs `null`).
 
 - Servidor com `http.ServeMux`; handler que lista em JSON.
 - Conceitos: `http.ResponseWriter`, `*http.Request`, `json.NewEncoder(w)`,
   `Content-Type`, `httptest.NewRecorder` e `httptest.NewRequest`.
 - Testes (escreve-os eu quando chegares aqui): lista vazia dá `[]`.
 
-### Etapa 3 — `POST /tarefas` (1–1,5h)
+### Etapa 3 — `POST /tarefas` (1–1,5h) — FEITO (2026-11-14)
+5 testes novos (201, JSON inválido, título vazio, 500, 50 POSTs em paralelo) passam com `-race`.
 - Ler o corpo com `json.NewDecoder(r.Body).Decode`, 201, 400 em erros.
 - Mapear erros do repositório para códigos com `errors.Is`.
 
-### Etapa 4 — `PATCH` e `DELETE` (1h)
+### Etapa 4 — `PATCH` e `DELETE` (1h) — FEITO (2026-11-14)
+24 testes no total com `-race`; `gofmt` e `go vet` limpos. Função auxiliar `letID` partilhada.
 - `r.PathValue("id")` (padrões do `ServeMux` do Go 1.22+), `strconv.Atoi`.
 - 400 para id inválido, 404 para inexistente, 204 sem corpo.
 
@@ -85,6 +87,10 @@ Limpeza opcional: apagar `errPorFazer` e os TODO da Etapa 1 em `repositorio.go`.
 - Porta por variável de ambiente, `http.Server` com timeouts,
   teste final com `httptest.NewServer` (pedido real por HTTP).
 - Extras: `log` de pedidos (middleware), paragem limpa com `context`.
+
+## Limpeza de estilo (no fim)
+Erros em JSON `{"erro":"..."}`; tratar o erro do `Encode`; tirar `else` após `return`;
+renomear `letID` -> `lerID` e `delete` -> `remover`; mensagens (400 = "id inválido", acentos, espaços).
 
 ## Definição de pronto
 - [ ] Todas as rotas funcionam com `curl`.

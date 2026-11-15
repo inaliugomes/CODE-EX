@@ -25,7 +25,7 @@ func NovoServidor(repo Repositorio) *Servidor {
 	return s
 }
 
-func letID(r *http.Request) (int, error) {
+func lerID(r *http.Request) (int, error) {
 
 	id := r.PathValue("id")
 
@@ -107,7 +107,7 @@ func (s *Servidor) adicionar(w http.ResponseWriter, r *http.Request) {
 
 func (s *Servidor) concluir(w http.ResponseWriter, r *http.Request) {
 
-	idValue, errValue := letID(r)
+	idValue, errValue := lerID(r)
 
 	if errValue != nil {
 
@@ -136,7 +136,7 @@ func (s *Servidor) concluir(w http.ResponseWriter, r *http.Request) {
 
 func (s *Servidor) delete(w http.ResponseWriter, r *http.Request) {
 
-	idValue, errValue := letID(r)
+	idValue, errValue := lerID(r)
 
 	if errValue != nil {
 		http.Error(w, "Erro do servidor , valida o seu id", http.StatusBadRequest)
