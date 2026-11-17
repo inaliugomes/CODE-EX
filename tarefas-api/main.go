@@ -7,7 +7,7 @@ import (
 
 func main() {
 	// TODO (Etapa 6): escolher o repositório, criar o servidor e arrancar.
-	s := NovoServidor(NovaMemoria())
+	s := NovoServidor(NovoArmazem("tarefas.json"))
 	log.Println("a ouvir em :8080")
 	log.Fatal(http.ListenAndServe(":8080", s.Handler()))
 }

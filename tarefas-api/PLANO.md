@@ -79,9 +79,12 @@ Conceitos HTTP revistos em 14 nov (fluxo mux -> handler, `s.listar` sem parênte
 - `r.PathValue("id")` (padrões do `ServeMux` do Go 1.22+), `strconv.Atoi`.
 - 400 para id inválido, 404 para inexistente, 204 sem corpo.
 
-### Etapa 5 — Repositório em ficheiro (1h)
-- Novo tipo que cumpre `Repositorio`, usando `Carregar`/`Guardar` da CLI.
-- Prova da interface: o servidor não muda uma linha.
+### Etapa 5 — Repositório em ficheiro (1h) — FEITO (2026-11-15)
+`Armazem` (`armazem.go`) cumpre `Repositorio`; `Carregar`/`Guardar` copiados da CLI com `[]Tarefa`.
+`armazem_test.go` (11 testes) passa com `-race`; `gofmt` e `go vet` limpos. O `servidor.go` não mudou.
+- Cada método: `Lock` + `defer Unlock` cobrindo carregar -> alterar -> guardar.
+- Só guarda quando a operação teve sucesso; não encontrado -> `ErrNaoEncontrada` sem tocar no ficheiro.
+- **Próximo passo: Etapa 6** (ligar o `Armazem` no `main.go`).
 
 ### Etapa 6 — Arranque e robustez (1h)
 - Porta por variável de ambiente, `http.Server` com timeouts,
