@@ -3,11 +3,29 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+	"time"
 )
 
 func main() {
-	// TODO (Etapa 6): escolher o repositório, criar o servidor e arrancar.
+
+	port := os.Getenv("PORT")
+
+	if port == "" {
+
+		port = "8080"
+	}
+
 	s := NovoServidor(NovoArmazem("tarefas.json"))
-	log.Println("a ouvir em :8080")
-	log.Fatal(http.ListenAndServe(":8080", s.Handler()))
+	log.Println("a ouvir em :" + port)
+
+	srv := &http.Server{Addr: ":" + port, Handler: s.Handler(), ReadHeaderTimeout: 5 * time.Second}
+
+	err := srv.ListenAndServe()
+
+	if err != nil {
+
+		log.Fatal(err)
+	}
+
 }
