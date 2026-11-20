@@ -100,3 +100,27 @@ func TestPersistenciaEntreServidores(t *testing.T) {
 		t.Errorf("depois do reinício: lista = %+v", l)
 	}
 }
+
+// Erros saem como {"erro":"..."} com Content-Type JSON.
+func TestErrosEmJSON(t *testing.T) {
+	srv := httptest.NewServer(NovoServidor(NovoArmazem(filepath.Join(t.TempDir(), "t.json"))).Handler())
+	defer srv.Close()
+
+	req, _ := http.NewRequest(http.MethodDelete, srv.URL+"/tarefas/abc", nil)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("código %d, esperado 400", resp.StatusCode)
+	}
+	if ct := resp.Header.Get("Content-Type"); ct != "application/json" {
+		t.Errorf("Content-Type = %q", ct)
+	}
+	var corpo map[string]string
+	if err := json.NewDecoder(resp.Body).Decode(&corpo); err != nil || corpo["erro"] != "id inválido" {
+		t.Errorf("corpo = %v, %v; esperado {\"erro\":\"id inválido\"}", corpo, err)
+	}
+}

@@ -86,12 +86,15 @@ Conceitos HTTP revistos em 14 nov (fluxo mux -> handler, `s.listar` sem parênte
 - Só guarda quando a operação teve sucesso; não encontrado -> `ErrNaoEncontrada` sem tocar no ficheiro.
 - **Próximo passo: Etapa 6** (ligar o `Armazem` no `main.go`).
 
-### Etapa 6 — Arranque e robustez (1h)
+### Etapa 6 — Arranque e robustez (1h) — FEITO (2026-11-17)
+`main.go`: `Armazem("tarefas.json")`, `PORT` com 8080 por omissão, `http.Server` com `ReadHeaderTimeout`, `log.Fatal` no erro.
+`integracao_test.go` (2 testes com `httptest.NewServer`: fluxo completo e persistência entre servidores) passa com `-race`. Testado à mão com `curl`.
+Extras (middleware de log, paragem limpa com `context`) ficam por fazer.
 - Porta por variável de ambiente, `http.Server` com timeouts,
   teste final com `httptest.NewServer` (pedido real por HTTP).
 - Extras: `log` de pedidos (middleware), paragem limpa com `context`.
 
-## Limpeza de estilo (no fim)
+## Limpeza de estilo — FEITA (2026-11-17, pelo Claude; o utilizador estuda e compara)
 Erros em JSON `{"erro":"..."}`; tratar o erro do `Encode`; tirar `else` após `return`;
 renomear `letID` -> `lerID` e `delete` -> `remover`; mensagens (400 = "id inválido", acentos, espaços).
 
@@ -110,3 +113,6 @@ Código descarregado fica FORA deste repositório e só se lê antes de correr.
 ## Como trabalhamos
 Tu escreves o código; eu escrevo plano, testes e valido. Pistas primeiro,
 solução só se pedires. Nunca faço commit.
+
+## Próximo: refazer do zero (decisão de 2026-11-17)
+O utilizador vai refazer este projeto em `tarefas-api2`, sem olhar este código, para ligar as peças sozinho. Plano e regras em `GO BASIC/PROGRESSO.md`.

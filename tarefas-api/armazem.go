@@ -10,229 +10,141 @@ import (
 )
 
 // Armazem é o Repositorio que guarda as tarefas num ficheiro JSON.
-//
-// TODO (Etapa 5):
-//  1. Copia Carregar e Guardar de ../tarefas-cli/armazem.go para este ficheiro,
-//     trocando o tipo Lista por []Tarefa (e escolhe nomes: ficam como funções
-//     soltas ou métodos privados).
-//  2. Cada método faz: Lock -> defer Unlock -> carregar -> alterar -> guardar.
-//     O Mutex cobre a sequência TODA (senão dois pedidos perdem dados).
-//  3. Só guardar quando a operação teve sucesso (erro => ficheiro intacto).
-//  4. Lista vazia grava-se como [] (nunca null): atenção à slice nil.
+// Cada método faz Lock -> carregar -> alterar -> guardar: o Mutex cobre a
+// sequência toda, senão dois pedidos em paralelo perdiam dados.
 type Armazem struct {
 	mu      sync.Mutex
 	caminho string
 }
 
-var errPorFazerArmazem = errors.New("por fazer")
+var _ Repositorio = (*Armazem)(nil)
 
 func NovoArmazem(caminho string) *Armazem { return &Armazem{caminho: caminho} }
 
 func (a *Armazem) Listar() ([]Tarefa, error) {
-
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
-	listaObjeto, err := Carregar(a.caminho)
-
-	if err != nil {
-
-		return nil, err
-
-	}
-
-	return listaObjeto, nil
-
+	return carregar(a.caminho)
 }
 
-func (a *Armazem) Adicionar(t string) (Tarefa, error) {
-
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
-	maior := 0
-
-	if strings.TrimSpace(t) == "" {
-
+func (a *Armazem) Adicionar(titulo string) (Tarefa, error) {
+	if strings.TrimSpace(titulo) == "" {
 		return Tarefa{}, ErrTituloVazio
 	}
 
-	listaTarefa, errCarregar := Carregar(a.caminho)
-
-	if errCarregar != nil {
-
-		return Tarefa{}, errCarregar
-	}
-
-	for _, tarefa := range listaTarefa {
-
-		if tarefa.ID > maior {
-
-			maior = tarefa.ID
-		}
-
-	}
-
-	nextID := maior + 1
-
-	proximaTarefa := Tarefa{ID: nextID, Titulo: t, Concluida: false}
-
-	listaTarefa = append(listaTarefa, proximaTarefa)
-
-	errGuardar := Guardar(a.caminho, listaTarefa)
-
-	if errGuardar != nil {
-
-		return Tarefa{}, errGuardar
-	}
-
-	return proximaTarefa, nil
-
-}
-
-func (a *Armazem) Concluir(id int) error {
-
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
-	listaTarefa, err := Carregar(a.caminho)
-
+	lista, err := carregar(a.caminho)
 	if err != nil {
+		return Tarefa{}, err
+	}
 
+	// ID = maior existente + 1 (nunca len, senão repete depois de remover).
+	maior := 0
+	for _, t := range lista {
+		if t.ID > maior {
+			maior = t.ID
+		}
+	}
+
+	nova := Tarefa{ID: maior + 1, Titulo: titulo}
+	if err := guardar(a.caminho, append(lista, nova)); err != nil {
+		return Tarefa{}, err
+	}
+
+	return nova, nil
+}
+
+func (a *Armazem) Concluir(id int) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	lista, err := carregar(a.caminho)
+	if err != nil {
 		return err
 	}
 
-	for i, tarefa := range listaTarefa {
-
-		if tarefa.ID == id {
-			listaTarefa[i].Concluida = true
-			errGuardar := Guardar(a.caminho, listaTarefa)
-
-			if errGuardar != nil {
-
-				return errGuardar
-			}
-			return nil
+	for i := range lista {
+		if lista[i].ID == id {
+			lista[i].Concluida = true // por índice: o range daria uma cópia
+			return guardar(a.caminho, lista)
 		}
-
 	}
 
-	return ErrNaoEncontrada
-
+	return ErrNaoEncontrada // não encontrada: o ficheiro fica intacto
 }
 
 func (a *Armazem) Remover(id int) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
-	listaTarefa, err := Carregar(a.caminho)
-
+	lista, err := carregar(a.caminho)
 	if err != nil {
-
 		return err
 	}
 
-	for i, tarefa := range listaTarefa {
-
-		if tarefa.ID == id {
-			listaTarefa = append(listaTarefa[:i], listaTarefa[i+1:]...)
-
-			errRemover := Guardar(a.caminho, listaTarefa)
-
-			if errRemover != nil {
-
-				return errRemover
-			}
-			return nil
+	for i := range lista {
+		if lista[i].ID == id {
+			return guardar(a.caminho, append(lista[:i], lista[i+1:]...))
 		}
-
 	}
 
 	return ErrNaoEncontrada
-
 }
 
-var _ Repositorio = (*Armazem)(nil)
-
-func Carregar(caminho string) ([]Tarefa, error) {
-
-	f, err := os.ReadFile(caminho)
-
+// carregar lê a lista do ficheiro. Ficheiro inexistente = lista vazia (1.º arranque).
+func carregar(caminho string) ([]Tarefa, error) {
+	dados, err := os.ReadFile(caminho)
 	if errors.Is(err, os.ErrNotExist) {
-
 		return []Tarefa{}, nil
 	}
-
 	if err != nil {
-
-		return []Tarefa{}, err
+		return nil, err
 	}
 
-	var list []Tarefa
-
-	jsonObjeto := json.Unmarshal(f, &list)
-
-	if jsonObjeto != nil {
-
-		return []Tarefa{}, jsonObjeto
+	var lista []Tarefa
+	if err := json.Unmarshal(dados, &lista); err != nil {
+		return nil, err
 	}
 
-	return list, nil
-
+	return lista, nil
 }
 
-func Guardar(caminho string, l []Tarefa) error {
+// guardar escreve de forma segura: ficheiro temporário na mesma pasta + Rename
+// (atómico). Se algo falhar a meio, o ficheiro original não fica corrompido.
+func guardar(caminho string, lista []Tarefa) error {
+	if lista == nil {
+		lista = []Tarefa{} // nil viraria "null" no JSON
+	}
 
-	jsonObject, err := json.MarshalIndent(l, "", " ")
-
+	dados, err := json.MarshalIndent(lista, "", " ")
 	if err != nil {
-
 		return err
-
 	}
 
-	caminhoDir := filepath.Dir(caminho)
-
-	tmp, errPath := os.CreateTemp(caminhoDir, "tarefas-*.tmp")
-
-	if errPath != nil {
-
-		return errPath
-
+	tmp, err := os.CreateTemp(filepath.Dir(caminho), "tarefas-*.tmp")
+	if err != nil {
+		return err
 	}
 
-	_, errWriteJSon := tmp.Write(jsonObject)
-
-	if errWriteJSon != nil {
-
+	if _, err := tmp.Write(dados); err != nil {
 		tmp.Close()
-
 		os.Remove(tmp.Name())
-
-		return errWriteJSon
-
+		return err
 	}
 
-	errClose := tmp.Close()
-
-	if errClose != nil {
-
+	// O erro do Close conta: verificar antes do Rename.
+	if err := tmp.Close(); err != nil {
 		os.Remove(tmp.Name())
-
-		return errClose
-
+		return err
 	}
 
-	errRename := os.Rename(tmp.Name(), caminho)
-
-	if errRename != nil {
-
+	if err := os.Rename(tmp.Name(), caminho); err != nil {
 		os.Remove(tmp.Name())
-
-		return errRename
-
+		return err
 	}
 
 	return nil
-
 }

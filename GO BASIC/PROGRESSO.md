@@ -1,8 +1,25 @@
 # Estudo de Go — Objetivo e Estado
 
-Última atualização: 2026-11-15 (tarefas-api: Etapa 5 feita, `Armazem` em ficheiro JSON)
+Última atualização: 2026-11-17 (tarefas-api: Etapa 6 feita, API funcional de ponta a ponta)
 
-Próximo: tarefas-api Etapa 6 (arranque no `main.go` com o `Armazem`, porta por variável de ambiente, `http.Server` com timeouts, teste com `httptest.NewServer`). Depois, limpeza de estilo e leitura comparada.
+Próximo (18 nov): REFAZER a tarefas-api do zero em pasta nova (`tarefas-api2`), sem olhar o código do projeto atual. Motivo (decisão do utilizador): com ajuda consegue implementar a lógica, mas sozinho não saberia ligar as peças. Só depois: extras (middleware de log, `context`) ou leitura comparada de projetos de outras pessoas.
+
+### Plano de amanhã — refazer tarefas-api (`tarefas-api2`)
+
+Regras: pasta nova fora do projeto atual; NÃO abrir o código antigo (só `CONTEXTO.md`/`PLANO.md` para conceitos); o Claude NÃO escreve código nem testes desta vez, só dá pistas quando o utilizador pedir; preso >~15 min -> pedir pista; só depois, se continuar, ver um pedaço do código antigo. O utilizador escreve os seus próprios testes.
+
+Primeiro passo (antes de qualquer código): o utilizador descreve por palavras suas o caminho de um `POST /tarefas`:
+pedido -> mux -> handler -> `Decode` -> repositório (Mutex) -> ficheiro -> `w`. O Claude corrige.
+
+Ordem (cada passo acaba com um teste do utilizador a passar, `go test -race`):
+1. `Tarefa` + `ErrTituloVazio` e `ErrNaoEncontrada`.
+2. Interface `Repositorio` + `Memoria` com Mutex.
+3. `GET /tarefas` com `httptest`.
+4. `POST`, depois `PATCH` e `DELETE`.
+5. `Armazem` em ficheiro (escrita segura: temporário + `Rename`).
+6. `main.go` (`PORT`, `http.Server` com `ReadHeaderTimeout`).
+
+Critério para avançar: fazer os passos 1 a 4 sem pistas e saber explicar porque cada parte está onde está.
 
 ## Plano da semana (26–30 out 2026)
 
@@ -248,7 +265,9 @@ de outras pessoas no GitHub (fora deste repositório; ler antes de correr; não 
     o Mutex cobre carregar+alterar+guardar (50 `Adicionar` em paralelo sem perdas nem IDs repetidos);
     não encontrado -> `ErrNaoEncontrada` sem gravar; uma slice `nil` viraria `null` no JSON.
   - Pendente (estilo): `return Guardar(...)` direto; `Carregar`/`Guardar` privados; `if l == nil` no `Guardar`; maiúsculas/`nao` nas mensagens.
-- [ ] Etapa 6: arranque, timeouts, teste com `httptest.NewServer`.
+- [x] Etapa 6: arranque (17 nov) — `Armazem` no `main.go`, `PORT` por variável de ambiente (8080 por omissão), `http.Server` com `ReadHeaderTimeout`, `log.Fatal` no erro; 2 testes de integração com `httptest.NewServer`; testado à mão com `curl`.
+  - Lições: não confundir **mux** (tabela método+caminho -> handler) com **Mutex** (lock); o mux escolhe a função, o handler decide o código e escreve em `w`; `ListenAndServe` bloqueia, o código depois dele nunca corre; `Addr` leva `":"`; `ReadHeaderTimeout` (cabeçalhos) vs `ReadTimeout` (pedido inteiro); `log.Fatal` para sair com código 1; não meter dependências externas (`godotenv`) quando o plano pede `os.Getenv`.
+  - Limpeza de estilo (17 nov): feita pelo Claude a pedido do utilizador, que a estuda a seguir. Ficheiros: `servidor.go` (`escreverJSON`, `escreverErro`, `responderSemCorpo`, `remover`, erros em JSON), `armazem.go` (`carregar`/`guardar` privados, `return guardar(...)` direto, sem TODO), `main.go` (sem linhas soltas), `integracao_test.go` (`TestErrosEmJSON`). 28+ testes com `-race`.
 - Depois: leitura comparada de projetos de outras pessoas.
 - Pendente (git, decisão do utilizador): `tarefas-cli` ainda tem o binário e o `tarefas.json` versionados.
 
